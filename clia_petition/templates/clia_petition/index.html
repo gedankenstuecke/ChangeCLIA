@@ -4,12 +4,66 @@
 
 {% block head_title %}Join our call!{% endblock %}
 
-{% block main %}
+{% block content %}
 
 <div class="container">
   <h1>This is a header.</h1>
-  <p>Some stuff here.</p>
-  <a class="btn btn-primary btn-lg" href="#">A button</a>
+  {{ form.non_field_errors }}
+  <form action="{% url 'home' %}" method="post">
+
+    {% csrf_token %}
+    <p>
+      {{ form.email.errors }}
+      <label for="{{ form.email.id_for_label }}">Email:</label>
+      {{ form.email }}
+      {{ form.email.help_text }}
+    </p>
+
+    <p>
+      {{ form.name.errors }}
+      <label for="{{ form.name.id_for_label }}">Name:</label>
+      {{ form.name }}
+      {{ form.name.help_text }}
+    </p>
+
+    <p>
+      {{ form.twitter.errors }}
+      <label for="{{ form.twitter.id_for_label }}">Twitter handle:</label>
+      {{ form.twitter }}
+      {{ form.twitter.help_text }}
+    </p>
+
+    <p>
+      {{ form.location.errors }}
+      <label for="{{ form.location.id_for_label }}">Location:</label>
+      {{ form.location }}
+      {{ form.location.help_text }}
+    </p>
+
+    {{ form.us_status.errors }}
+    <ul id="id_us_status">
+      {% for choice in form.us_status %}
+        <li>
+        {{ choice.value }}
+        {{ choice }}
+        </li>
+      {% endfor %}
+    </ul>
+    {{ form.us_status.help_text }}
+
+    <p>
+      {{ form.comments.errors }}
+      <label for="{{ form.comments.id_for_label }}">Comments:</label>
+      {{ form.comments }}
+      {{ form.comments.help_text }}
+    </p>
+
+    <p>
+      <input type="submit" value="Add your voice" />
+    </p>
+
+  </form>
+
 </div>
 
-{% endblock main %}
+{% endblock content %}

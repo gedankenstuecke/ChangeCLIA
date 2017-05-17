@@ -13,7 +13,7 @@
     <!-- Uncomment the following if a favicon is added. -->
     <!-- <link rel="icon" type="image/png" href="images/favicon.png"> -->
 
-    <title>Open Humans Data Source</title>
+    <title>{% block head_title %}Open Humans Data Source{% endblock head_title %}</title>
 
     <!-- Bootstrap -->
     <!-- Compiled and minified CSS -->
@@ -33,8 +33,8 @@
 
   <body>
 
-  <!-- Navigation -->
-  <nav class="navbar navbar-default">
+    <!-- Navigation -->
+    <nav class="navbar navbar-default">
       <div class="container-fluid">
         <div class="navbar-header">
           <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
@@ -72,8 +72,8 @@
       </div><!--/.container-fluid -->
     </nav>
 
-    {% block main %}
-    {% endblock main %}
+    {% block content %}
+    {% endblock content %}
 
     <!-- Bootstrap core JavaScript
     ================================================== -->
