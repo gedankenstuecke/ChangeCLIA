@@ -1,4 +1,4 @@
-from allauth.account.utils import url_str_to_user_pk
+from allauth.account.utils import url_str_to_user_pk, send_email_confirmation
 
 from django.contrib.auth import authenticate, get_user_model, login
 from django.core.urlresolvers import reverse, reverse_lazy
@@ -6,6 +6,8 @@ from django.http import HttpResponseRedirect
 from django.views.generic import FormView, View
 
 from .forms import SignupForm
+from .models import Profile
+from .utils import new_user
 
 User = get_user_model()
 
@@ -46,5 +48,15 @@ class HomeView(FormView):
     success_url = reverse_lazy('home')
 
     def form_valid(self, form):
-        # Do stuff here.
+        user = new_user(email=form.cleaned_data['email'])
+        user.save()
+        profile = Profile(
+            user=user,
+            name=form.cleaned_data['name'],
+            twitter=form.cleaned_data['twitter'],
+            location=form.cleaned_data['location'],
+            us_status=form.cleaned_data['us_status'],
+            comments=form.cleaned_data['comments'])
+        profile.save()
+        send_email_confirmation(self.request, user)
         return super(HomeView, self).form_valid(form)
