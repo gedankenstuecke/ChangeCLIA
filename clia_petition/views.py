@@ -58,10 +58,10 @@ class HomeView(FormView):
             user=user,
             name=form.cleaned_data['name'],
             twitter=form.cleaned_data['twitter'],
-            location=form.cleaned_data['location'],
             us_status=form.cleaned_data['us_status'],
             comments=form.cleaned_data['comments'])
         profile.save()
+        profile.update_twitter_data()
         return complete_signup(
             self.request,
             user,
@@ -115,8 +115,8 @@ class ProfileEditView(SingleObjectMixin, FormView):
         profile = self.object
         profile.name = form.cleaned_data['name']
         profile.twitter = form.cleaned_data['twitter']
-        profile.location = form.cleaned_data['location']
         profile.us_status = form.cleaned_data['us_status']
         profile.comments = form.cleaned_data['comments']
         profile.save()
+        profile.update_twitter_data()
         return super(ProfileEditView, self).form_valid(form)

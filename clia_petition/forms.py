@@ -12,7 +12,7 @@ class ProfileForm(forms.ModelForm):
 
     class Meta:
         model = Profile
-        fields = ['name', 'email', 'twitter', 'location', 'us_status', 'comments']
+        fields = ['name', 'email', 'twitter', 'us_status', 'comments']
 
     def clean_email(self):
         email = self.cleaned_data['email']
