@@ -1,3 +1,5 @@
+from allauth.account.models import EmailAddress
+
 from django.contrib.auth import get_user_model
 from django.db import models
 
@@ -21,3 +23,8 @@ class Profile(models.Model):
 
     def update_followers(self):
         pass
+
+    @property
+    def emailaddress(self):
+        ea = EmailAddress.objects.get(email=self.user.email)
+        return ea

@@ -2,31 +2,30 @@
 
 {% load static from staticfiles %}
 
-{% block head_title %}Join our call!{% endblock %}
+{% block head_title %}Edit your information{% endblock %}
 
 {% block content %}
 
-  {% if user.is_authenticated %}
+<div class="container">
 
-  <h1>Thank you for adding your voice.</h1>
+  <h1>Petition profile</h1>
 
   <p>Your profile details are below.</p>
+
   {% include 'clia_petition/partials/profile_info.html' %}
 
-  <a href="{% url 'profile_edit' pk=user.profile.id %}">Click here to edit profile details.</a>
+  <hr>
 
-  {% else %}
-
-  <h1>This is a header.</h1>
+  <h1>Edit profile details.</h1>
   {{ form.non_field_errors }}
-  <form action="{% url 'home' %}" method="post">
+  <form action="{% url 'profile_edit' pk=object.id %}" method="post">
 
     {% csrf_token %}
     <p>
       {{ form.email.errors }}
       <label for="{{ form.email.id_for_label }}">Email:</label>
       {{ form.email }}
-      {{ form.email.help_text }}
+      If you want to log in to manage your details, your email needs to be correct!
     </p>
 
     <p>
@@ -69,19 +68,12 @@
     </p>
 
     <p>
-      <input type="submit" value="Add your voice" />
+      <input type="submit" value="Update details" />
     </p>
 
   </form>
-  <hr>
 
-  <p>
-    Did you already sign – but want to update your information?
-    <a href="{% url 'account_reset_password' %}">Request a login link.</a>
-  </p>
-
-  {% endif %}
-
+</div>
 <hr>
 
 {% endblock content %}

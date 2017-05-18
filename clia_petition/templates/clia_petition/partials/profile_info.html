@@ -1,0 +1,46 @@
+<p>
+{% if not user.profile.emailaddress.verified %}
+<b>VERIFY EMAIL ADDRESS!</b>
+<form action="{% url 'resend_confirmation' %}" method="post">
+  {% csrf_token %}
+  <input type="submit" value="Resend confirmation" />
+</form>
+{% else %}
+<b>Email confirmed</b>
+{% endif %}
+</p>
+
+<p>
+  <b>Name:</b> {{ user.profile.name }}
+</p>
+
+<p>
+  <b>Email:</b> {{ user.email }}
+</p>
+
+<p>
+  <b>Twitter account:</b>
+    {% if user.profile.twitter %}
+    @{{ user.profile.twitter }}
+    {% else %}
+    <span class="text-muted">None</span>
+    {% endif %}
+  </p>
+
+  <p>
+    <b>Location:</b>
+    {% if user.profile.location %}
+    {{ user.profile.location }}
+    {% else %}
+    <span class="text-muted">None provided</span>
+    {% endif %}
+  </p>
+
+  <p>
+    <b>US Status:</b> {{ user.profile.get_us_status_display }}
+  </p>
+
+  <p>
+    <b>Comments:</b> {{ user.profile.comments }}
+  </p>
+</p>

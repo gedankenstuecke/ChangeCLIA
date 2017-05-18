@@ -1,11 +1,15 @@
-from allauth.account.utils import url_str_to_user_pk, send_email_confirmation
+from allauth.account import app_settings as account_settings
+from allauth.account.models import EmailAddress
+from allauth.account.utils import url_str_to_user_pk, complete_signup, send_email_confirmation
 
+from django.contrib import messages
 from django.contrib.auth import authenticate, get_user_model, login
 from django.core.urlresolvers import reverse, reverse_lazy
 from django.http import HttpResponseRedirect
 from django.views.generic import FormView, View
+from django.views.generic.detail import SingleObjectMixin
 
-from .forms import SignupForm
+from .forms import ProfileForm
 from .models import Profile
 from .utils import new_user
 
@@ -43,7 +47,7 @@ class TokenLoginView(View):
 
 class HomeView(FormView):
     template_name = "clia_petition/index.html"
-    form_class = SignupForm
+    form_class = ProfileForm
     redirect_field_name = "next"
     success_url = reverse_lazy('home')
 
@@ -58,5 +62,61 @@ class HomeView(FormView):
             us_status=form.cleaned_data['us_status'],
             comments=form.cleaned_data['comments'])
         profile.save()
-        send_email_confirmation(self.request, user)
-        return super(HomeView, self).form_valid(form)
+        return complete_signup(
+            self.request,
+            user,
+            account_settings.EMAIL_VERIFICATION,
+            self.get_success_url())
+
+
+class ResendConfirmationView(View):
+
+    def post(self, request, *args, **kwargs):
+        send_email_confirmation(request, request.user)
+        return HttpResponseRedirect(reverse_lazy('home'))
+
+
+class ProfileEditView(SingleObjectMixin, FormView):
+    template_name = 'clia_petition/edit.html'
+    form_class = ProfileForm
+    redirect_field_name = 'next'
+    success_url = reverse_lazy('home')
+    model = Profile
+
+    def dispatch(self, *args, **kwargs):
+        self.object = self.get_object()
+        if self.object.id != self.request.user.profile.id:
+            return HttpResponseRedirect(reverse_lazy('home'))
+        return super(ProfileEditView, self).dispatch(*args, **kwargs)
+
+    def get_initial(self):
+        initial = super(ProfileEditView, self).get_initial()
+        initial['email'] = self.object.user.email
+        return initial
+
+    def get_form_kwargs(self):
+        kwargs = super(ProfileEditView, self).get_form_kwargs()
+        kwargs['instance'] = self.get_object()
+        return kwargs
+
+    def form_valid(self, form):
+        if self.object.user.email != form.cleaned_data['email']:
+            ea_old = EmailAddress.objects.get(email=self.object.user.email)
+            ea_old.primary = False
+            user = self.object.user
+            user.email = form.cleaned_data['email']
+            user.save()
+            ea_new, _ = EmailAddress.objects.get_or_create(
+                user=user, email=user.email)
+            ea_new.primary = True
+            ea_new.save()
+            if not ea_new.verified:
+                send_email_confirmation(self.request, self.request.user)
+        profile = self.object
+        profile.name = form.cleaned_data['name']
+        profile.twitter = form.cleaned_data['twitter']
+        profile.location = form.cleaned_data['location']
+        profile.us_status = form.cleaned_data['us_status']
+        profile.comments = form.cleaned_data['comments']
+        profile.save()
+        return super(ProfileEditView, self).form_valid(form)

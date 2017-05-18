@@ -43,9 +43,10 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class="navbar-brand" href="#">Project name</a>
+          <a class="navbar-brand" href="{% url 'home' %}">Change CLIA!</a>
         </div>
         <div id="navbar" class="navbar-collapse collapse">
+          <!--
           <ul class="nav navbar-nav">
             <li class="active"><a href="#">Home</a></li>
             <li><a href="#">About</a></li>
@@ -62,18 +63,32 @@
                 <li><a href="#">One more separated link</a></li>
               </ul>
             </li>
-          </ul>
+          </ul> -->
           <ul class="nav navbar-nav navbar-right">
-            <li class="active"><a href="./">Default <span class="sr-only">(current)</span></a></li>
-            <li><a href="../navbar-static-top/">Static top</a></li>
-            <li><a href="../navbar-fixed-top/">Fixed top</a></li>
+            {% if user.is_authenticated %}
+            <li><a href="{% url 'profile_edit' pk=user.profile.id %}">Edit profile</a></li>
+            <li><a href="{% url 'account_logout' %}">Log out</a></li>
+            {% else %}
+            <li><a href="{% url 'account_reset_password' %}">Get login link</a></li>
+            {% endif %}
           </ul>
         </div><!--/.nav-collapse -->
       </div><!--/.container-fluid -->
     </nav>
 
+    <div class="container">
+    {% if messages %}
+      <div class="row">
+        {% for message in messages %}
+        <div{% if message.tags %} class="message {{ message.tags }}"{% endif %}>
+          {{ message }}</div>
+        {% endfor %}
+      </ul>
+    {% endif %}
+
     {% block content %}
     {% endblock content %}
+    </div>
 
     <!-- Bootstrap core JavaScript
     ================================================== -->

@@ -1,0 +1,11 @@
+{% load account %}{% user_display user as user_display %}{% load i18n %}{% autoescape off %}{% blocktrans with site_name=current_site.name site_domain=current_site.domain %}Hello from {{ site_name }} and thank you for joining our petition!
+
+Your voice matters! You can confirm your voice by confirming your email.
+
+Go to: {{ activate_url }}
+
+Sincerely,
+
+{{ site_name }}
+{{ site_domain }}
+{% endblocktrans %}{% endautoescape %}
