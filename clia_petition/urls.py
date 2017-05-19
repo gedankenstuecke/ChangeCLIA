@@ -4,7 +4,10 @@ from django.conf.urls import include, url
 from django.contrib import admin
 from django.views.generic import TemplateView
 
-from clia_petition.views import HomeView, ProfileEditView, ResendConfirmationView, TokenLoginView
+from clia_petition.views import (
+    HomeView, ProfileEditView, ResendConfirmationView, TokenLoginView,
+    TwitterReturnView
+)
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
@@ -17,4 +20,5 @@ urlpatterns = [
     url(r'^token_login_fail/?$',
         TemplateView.as_view(template_name='clia_petition/token_login_fail.html'),
         name='token_login_fail'),
+    url(r'^twitter_return/', TwitterReturnView.as_view()),
 ]

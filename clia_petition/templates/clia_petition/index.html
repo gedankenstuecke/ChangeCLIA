@@ -10,6 +10,32 @@
 
   <h1>Thank you for adding your voice.</h1>
 
+  {% if not user.profile.twitter and twitter_auth_url or not user.profile.emailaddress.verified %}
+    <h2>Take an extra step!</h2>
+
+    {% if not user.profile.emailaddress.verified %}
+    <h3>Confirm your email.</h3>
+    <p>
+      Confirm you're you! Check your email for a confirmation link, or click the
+      button below to send a new confirmation.
+    </p>
+    <form action="{% url 'resend_confirmation' %}" method="post">
+      {% csrf_token %}
+      <input type="submit" value="Resend confirmation" />
+    </form>
+    {% endif %}
+
+    {% if not user.profile.twitter and twitter_auth_url %}
+    <h3>Connect Twitter</h3>
+    <p>
+      A little extra to help folks know you! We use follower counts to highlight
+      some of our highest profile signatures.
+    </p>
+    <a class="btn btn-default btn-md" href="{{ twitter_auth_url }}">
+      Connect Twitter</a>
+    {% endif %}
+  {% endif %}
+
   <p>Your profile details are below.</p>
   {% include 'clia_petition/partials/profile_info.html' %}
 
@@ -36,20 +62,6 @@
       {{ form.name.help_text }}
     </p>
 
-    <p>
-      {{ form.twitter.errors }}
-      <label for="{{ form.twitter.id_for_label }}">Twitter handle:</label>
-      {{ form.twitter }}
-      {{ form.twitter.help_text }}
-    </p>
-
-    <p>
-      {{ form.location.errors }}
-      <label for="{{ form.location.id_for_label }}">Location:</label>
-      {{ form.location }}
-      {{ form.location.help_text }}
-    </p>
-
     {{ form.us_status.errors }}
     <ul id="id_us_status">
       {% for choice in form.us_status %}
@@ -69,7 +81,11 @@
     </p>
 
     <p>
-      <input type="submit" value="Add your voice" />
+      <input type="submit" name="action" value="Sign with email" />
+    </p>
+
+    <p>
+      <input type="submit" name="action" value="Sign with Twitter account" />
     </p>
 
   </form>
@@ -83,5 +99,25 @@
   {% endif %}
 
 <hr>
+
+<h3>Sigs by date</h3>
+
+{% for profile in sigs_by_date %}
+  {{ profile.name }}<br>
+  {{ profile.emailaddress.verified }}<br>
+  @{{ profile.twitter }}<br>
+  {{ profile.followers }}<br>
+  {{ profile.user.join_date }}
+{% endfor %}
+
+<h3>Sigs by followers</h3>
+
+{% for profile in sigs_by_followers %}
+  {{ profile.name }}<br>
+  {{ profile.emailaddress.verified }}<br>
+  @{{ profile.twitter }}<br>
+  {{ profile.followers }}<br>
+  {{ profile.user.join_date }}
+{% endfor %}
 
 {% endblock content %}

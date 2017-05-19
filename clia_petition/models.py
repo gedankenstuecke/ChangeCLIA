@@ -19,6 +19,8 @@ class Profile(models.Model):
     name = models.CharField('name', max_length=80, blank=False)
     twitter = models.CharField('twitter handle', max_length=15, blank=True)
     followers = models.IntegerField(default=0)
+    twitter_oauth_token = models.CharField(max_length=50, blank=True)
+    twitter_oauth_token_secret = models.CharField(max_length=45, blank=True)
     location = models.CharField(max_length=30, blank=True)
     us_status = models.CharField(max_length=1, choices=US_STATUS_CHOICES,
                                  blank=False, null=False)

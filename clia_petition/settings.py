@@ -65,6 +65,8 @@ MIDDLEWARE = [
 AUTHENTICATION_BACKENDS = (
     # Allow login with token instead of password.
     'clia_petition.backends.UserTokenBackend',
+    # For login of a trusted user, without credentials.
+    'clia_petition.backends.TrustedUserAuthenticationBackend',
     # Needed to login by username in Django admin, regardless of `allauth`
     'django.contrib.auth.backends.ModelBackend',
     # `allauth` specific authentication methods, such as login by e-mail

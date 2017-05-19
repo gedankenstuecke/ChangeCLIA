@@ -35,20 +35,6 @@
       {{ form.name.help_text }}
     </p>
 
-    <p>
-      {{ form.twitter.errors }}
-      <label for="{{ form.twitter.id_for_label }}">Twitter handle:</label>
-      {{ form.twitter }}
-      {{ form.twitter.help_text }}
-    </p>
-
-    <p>
-      {{ form.location.errors }}
-      <label for="{{ form.location.id_for_label }}">Location:</label>
-      {{ form.location }}
-      {{ form.location.help_text }}
-    </p>
-
     {{ form.us_status.errors }}
     <ul id="id_us_status">
       {% for choice in form.us_status %}

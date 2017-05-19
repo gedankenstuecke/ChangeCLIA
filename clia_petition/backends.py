@@ -1,6 +1,6 @@
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth import get_user_model
-
+from django.contrib.auth.backends import ModelBackend
 
 class UserTokenBackend(object):
 
@@ -26,3 +26,12 @@ class UserTokenBackend(object):
             return UserModel._default_manager.get(pk=user_id)
         except UserModel.DoesNotExist:
             return None
+
+
+class TrustedUserAuthenticationBackend(ModelBackend):
+    """
+    Authenticate a trusted user. (No credentials checked.)
+    """
+
+    def authenticate(self, **credentials):
+        return None
