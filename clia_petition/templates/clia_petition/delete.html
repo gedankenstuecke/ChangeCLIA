@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block head_title %}Change CLIA: Delete your information{% endblock %}
+
+{% block content %}
+<h1>Delete account?</h1>
+
+<p>Click the button below to permanently delete your signature.</p>
+
+<form action="{% url 'profile_delete' %}" method="post">
+
+  {% csrf_token %}
+
+  <input class='btn btn-danger' type="submit" value="Delete account" />
+
+</form>
+
+{% endblock %}

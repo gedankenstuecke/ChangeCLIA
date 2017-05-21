@@ -1,0 +1,21 @@
+<div style="border-top:solid #bbb 1px;padding-top:10px;">
+  <div style="width:30%;display:inline-block;">{{ profile.name }}</div>
+  <div style="width:20%;display:inline-block;">
+    <a href="https://twitter.com/{{ profile.twitter }}">@{{ profile.twitter}}</a>
+  </div>
+  <div style="width:15%;display:inline-block;">
+    {% if profile.emailaddress.verified %}
+      &#x2713;
+    {% endif %}
+  </div>
+  <div style="width:30%;display:inline-block;">
+    {{ profile.user.date_joined }}
+  </div>
+</div>
+{% if profile.comments %}
+<div>
+  <p style="padding-left:20px;color:#999;padding-top:5px;">
+    <i>&#8220;{{ profile.comments }}&#8221;</i>
+  </p>
+</div>
+{% endif %}

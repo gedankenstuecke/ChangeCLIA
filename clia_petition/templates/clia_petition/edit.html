@@ -2,7 +2,7 @@
 
 {% load static from staticfiles %}
 
-{% block head_title %}Edit your information{% endblock %}
+{% block head_title %}Change CLIA: Edit your information{% endblock %}
 
 {% block content %}
 
@@ -18,14 +18,14 @@
 
   <h1>Edit profile details.</h1>
   {{ form.non_field_errors }}
-  <form action="{% url 'profile_edit' pk=object.id %}" method="post">
+  <form action="{% url 'profile_edit' %}" method="post">
 
     {% csrf_token %}
     <p>
       {{ form.email.errors }}
       <label for="{{ form.email.id_for_label }}">Email:</label>
       {{ form.email }}
-      If you want to log in to manage your details, your email needs to be correct!
+      If you want to log in via email to manage info, your email needs to be correct!
     </p>
 
     <p>
@@ -59,7 +59,12 @@
 
   </form>
 
+  <h2>Delete profile</h2>
+
+  <p>
+    <a href="{% url 'profile_delete' %}">Click here to delete your profile.</a>
+  </p>
+
 </div>
-<hr>
 
 {% endblock content %}

@@ -2,12 +2,11 @@ from allauth.account import app_settings as account_settings
 from allauth.account.models import EmailAddress
 from allauth.account.utils import url_str_to_user_pk, complete_signup, send_email_confirmation
 
-from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth import authenticate, get_user_model, login
+from django.contrib.auth import authenticate, get_user_model, login, logout
 from django.core.urlresolvers import reverse, reverse_lazy
 from django.http import HttpResponseRedirect
-from django.views.generic import FormView, View
+from django.views.generic import FormView, TemplateView, View
 from django.views.generic.detail import SingleObjectMixin
 
 import tweepy
@@ -42,20 +41,25 @@ class TokenLoginView(View):
         user = authenticate(username=self.reset_user.username, token=token)
         if user:
             login(request, user)
-            login_url = reverse('home')
+            login_url = reverse('profile_edit')
             return HttpResponseRedirect(login_url)
         failed_login_url = reverse('token_login_fail')
         return HttpResponseRedirect(failed_login_url)
 
 
 class TwitterReturnView(View):
+    """
+    Handle return from Twitter authentication.
+    """
 
     def get(self, request, *args, **kwargs):
-        email = self.request.session.get('signature_email', '')
-        name = self.request.session.get('signature_name', '')
-        us_status = self.request.session.get('signature_us_status', '')
-        comments = self.request.session.get('sigature_comments', '')
+        # For profile via Twitter, info is temporarily stored in sessions.
+        email = self.request.session.pop('signature_email', '')
+        name = self.request.session.pop('signature_name', '')
+        us_status = self.request.session.pop('signature_us_status', '')
+        comments = self.request.session.pop('signature_comments', '')
 
+        # Handle the Twitter return.
         oauth_token = self.request.GET['oauth_token']
         oauth_verifier = self.request.GET['oauth_verifier']
         auth = get_tweepy_auth()
@@ -66,17 +70,38 @@ class TwitterReturnView(View):
         api = tweepy.API(auth)
         user_data = api.me()
 
+        # Login via Twitter if unauthenticated and 'name' wasn't defined.
+        if not name and not request.user.is_authenticated:
+            try:
+                profile = Profile.objects.get(twitter=user_data.screen_name)
+                user = profile.user
+                user.backend = 'clia_petition.backends.TrustedUserAuthenticationBackend'
+                login(request, user)
+                return HttpResponseRedirect(reverse_lazy('profile_edit'))
+            except Profile.DoesNotExist:
+                messages.error(request, 'Twitter user @{} not found!'.format(
+                    user_data.screen_name))
+                return HttpResponseRedirect(reverse_lazy('home'))
+
+                profile = Profile.objects.get(twitter=user_data.screen_name)
+
+        # Otherwise, this is new account, or attaching Twitter to existing.
+
+        # Check that this Twitter username isn't already claimed.
         try:
-            Profile.objects.get(twitter=user_data.screen_name)
-            messages.error('Twitter user @{} has already signed!'.format(
-                user_data.screen_name))
+            profile = Profile.objects.get(twitter=user_data.screen_name)
+            messages.error(request, 'Twitter user @{} has already '
+                           'signed!'.format(user_data.screen_name))
             return HttpResponseRedirect(reverse_lazy('home'))
-        except:
+        except Profile.DoesNotExist:
             pass
 
+        # Connecting to current account.
         if request.user.is_authenticated:
             user = request.user
-        else:
+
+        # Creating a new account.
+        elif name:
             if email:
                 user = new_user(username=user_data.screen_name,
                                 email=email)
@@ -87,7 +112,15 @@ class TwitterReturnView(View):
             user.backend = 'clia_petition.backends.TrustedUserAuthenticationBackend'
             login(request, user)
 
+        # This is unexpected.
+        else:
+            messages.error(request, 'Sorry! Account creation error.')
+            return HttpResponseRedirect(reverse_lazy('home'))
+
+        # Get or create profile for this user.
         profile, _ = Profile.objects.get_or_create(user=user)
+
+        # Add profile data (if we have it).
         if name:
             profile.name = name
         if us_status:
@@ -95,6 +128,7 @@ class TwitterReturnView(View):
         if comments:
             profile.comments = comments
 
+        # Add data from Twitter.
         profile.twitter = user_data.screen_name
         profile.followers = user_data.followers_count
         profile.twitter_oauth_token = token
@@ -104,7 +138,26 @@ class TwitterReturnView(View):
         return HttpResponseRedirect(reverse_lazy('home'))
 
 
+class LoginView(TemplateView):
+    """
+    Offer methods for logging in.
+    """
+    template_name = 'clia_petition/login.html'
+
+    def get_context_data(self, *args, **kwargs):
+        context_data = super(LoginView, self).get_context_data(*args, **kwargs)
+        auth = get_tweepy_auth()
+        try:
+            context_data['twitter_auth_url'] = auth.get_authorization_url()
+        except tweepy.TweepError:
+            pass
+        return context_data
+
+
 class HomeView(FormView):
+    """
+    Main page. Enables signup and lists signatures.
+    """
     template_name = "clia_petition/index.html"
     form_class = SignatureForm
     redirect_field_name = "next"
@@ -130,6 +183,9 @@ class HomeView(FormView):
         return context_data
 
     def post(self, request, *args, **kwargs):
+        """
+        Process form to record sign-up method, proceed based on form validity.
+        """
         form = self.get_form()
 
         if self.request.POST['action'] == 'Sign with email':
@@ -145,15 +201,25 @@ class HomeView(FormView):
             return self.form_invalid(form)
 
     def form_valid(self, form):
+        """
+        Process valid form depending on sign-up method.
+        """
         if form.submit_action == 'twitter':
-            self.request.session['signature_email'] = self.request.POST['email']
-            self.request.session['signature_name'] = self.request.POST['name']
-            self.request.session['signature_us_status'] = self.request.POST['us_status']
-            self.request.session['signature_comments'] = self.request.POST['comments']
+
+            # Store form data in session.
+            session_storage = ['email', 'name', 'us_status', 'comments']
+            for item in session_storage:
+                session_key = 'signature_{}'.format(item)
+                self.request.session[session_key] = self.request.POST[item]
+
+            # Send user to twitter.
             auth = get_tweepy_auth()
             url = auth.get_authorization_url()
             return HttpResponseRedirect(url)
+
         elif form.submit_action == 'email':
+
+            # Create new user.
             user = new_user(email=form.cleaned_data['email'])
             user.save()
             profile = Profile(
@@ -170,40 +236,40 @@ class HomeView(FormView):
 
 
 class ResendConfirmationView(View):
-
+    """
+    Resend email confirmation.
+    """
     def post(self, request, *args, **kwargs):
         send_email_confirmation(request, request.user)
         return HttpResponseRedirect(reverse_lazy('home'))
 
 
-class ProfileEditView(SingleObjectMixin, FormView):
+class ProfileEditView(FormView):
+    """
+    Edit signer profile.
+    """
     template_name = 'clia_petition/edit.html'
     form_class = ProfileForm
     redirect_field_name = 'next'
     success_url = reverse_lazy('home')
-    model = Profile
-
-    def dispatch(self, *args, **kwargs):
-        self.object = self.get_object()
-        if self.object.id != self.request.user.profile.id:
-            return HttpResponseRedirect(reverse_lazy('home'))
-        return super(ProfileEditView, self).dispatch(*args, **kwargs)
 
     def get_initial(self):
         initial = super(ProfileEditView, self).get_initial()
-        initial['email'] = self.object.user.email
+        initial['email'] = self.request.user.email
         return initial
 
     def get_form_kwargs(self):
         kwargs = super(ProfileEditView, self).get_form_kwargs()
-        kwargs['instance'] = self.get_object()
+        kwargs['instance'] = self.request.user.profile
         return kwargs
 
     def form_valid(self, form):
-        if self.object.user.email != form.cleaned_data['email']:
-            ea_old = EmailAddress.objects.get(email=self.object.user.email)
-            ea_old.primary = False
-            user = self.object.user
+        if self.request.user.email != form.cleaned_data['email']:
+            if self.request.user.email:
+                ea_old = EmailAddress.objects.get(
+                    email=self.request.user.email)
+                ea_old.primary = False
+            user = self.request.user
             user.email = form.cleaned_data['email']
             user.save()
             ea_new, _ = EmailAddress.objects.get_or_create(
@@ -212,10 +278,23 @@ class ProfileEditView(SingleObjectMixin, FormView):
             ea_new.save()
             if not ea_new.verified:
                 send_email_confirmation(self.request, self.request.user)
-        profile = self.object
+        profile = self.request.user.profile
         profile.name = form.cleaned_data['name']
         profile.us_status = form.cleaned_data['us_status']
         profile.comments = form.cleaned_data['comments']
         profile.save()
         profile.update_twitter_data()
         return super(ProfileEditView, self).form_valid(form)
+
+
+class ProfileDeleteView(TemplateView):
+    """Allow signer to delete their signature."""
+    template_name = 'clia_petition/delete.html'
+
+    def post(self, request, *args, **kwargs):
+        user = self.request.user
+        logout(request)
+        user.profile.delete()
+        user.delete()
+        messages.success(request, 'Signature deleted.')
+        return HttpResponseRedirect(reverse_lazy('home'))

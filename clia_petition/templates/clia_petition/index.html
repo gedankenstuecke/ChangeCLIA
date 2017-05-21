@@ -2,48 +2,101 @@
 
 {% load static from staticfiles %}
 
-{% block head_title %}Join our call!{% endblock %}
+{% block head_title %}Change CLIA: Join our call!{% endblock %}
 
 {% block content %}
 
   {% if user.is_authenticated %}
 
-  <h1>Thank you for adding your voice.</h1>
+  <div class="row">
+    <div class="col-sm-6">
+      <h1>Thank you for adding your voice!</h1>
 
-  {% if not user.profile.twitter and twitter_auth_url or not user.profile.emailaddress.verified %}
-    <h2>Take an extra step!</h2>
+      {% if not user.profile.twitter and twitter_auth_url or user.email and not user.profile.emailaddress.verified %}
+        <h2>Take an extra step...</h2>
 
-    {% if not user.profile.emailaddress.verified %}
-    <h3>Confirm your email.</h3>
-    <p>
-      Confirm you're you! Check your email for a confirmation link, or click the
-      button below to send a new confirmation.
-    </p>
-    <form action="{% url 'resend_confirmation' %}" method="post">
-      {% csrf_token %}
-      <input type="submit" value="Resend confirmation" />
-    </form>
-    {% endif %}
+        {% if not user.profile.emailaddress.verified %}
+        <h3>Confirm your email.</h3>
+        <p>
+          Confirm you're you! Check your email for a confirmation link, or click the
+          button below to send a new confirmation.
+        </p>
+        <form action="{% url 'resend_confirmation' %}" method="post">
+          {% csrf_token %}
+          <input type="submit" value="Resend confirmation" />
+        </form>
+        {% endif %}
 
-    {% if not user.profile.twitter and twitter_auth_url %}
-    <h3>Connect Twitter</h3>
-    <p>
-      A little extra to help folks know you! We use follower counts to highlight
-      some of our highest profile signatures.
-    </p>
-    <a class="btn btn-default btn-md" href="{{ twitter_auth_url }}">
-      Connect Twitter</a>
-    {% endif %}
+        {% if not user.profile.twitter and twitter_auth_url %}
+        <h3>Connect Twitter</h3>
+        <p>
+          A little extra to help folks know you! We use follower counts to highlight
+          some of our highest profile signatures.
+        </p>
+        <a class="btn btn-default btn-md" href="{{ twitter_auth_url }}">
+          Connect Twitter</a>
+        {% endif %}
+      </div>
+      {% endif %}
+
+    </div>
+    <div class="col-sm-6">
+      <h3>Your details.</h3>
+
+      {% include 'clia_petition/partials/profile_info.html' %}
+
+      <a href="{% url 'profile_edit' %}">Click here to edit profile details.</a>
+    </div>
+  </div>
+
+  <hr>
   {% endif %}
 
-  <p>Your profile details are below.</p>
-  {% include 'clia_petition/partials/profile_info.html' %}
+  {% include 'clia_petition/partials/petition_description.html' %}
 
-  <a href="{% url 'profile_edit' pk=user.profile.id %}">Click here to edit profile details.</a>
+  <hr>
 
-  {% else %}
+  <div class="row">
 
-  <h1>This is a header.</h1>
+    <div class="col-sm-6">
+      <h3>High profile signatures</h3>
+
+      <div>
+        <div>
+          <div style="width:30%;display:inline-block;">Name</div>
+          <div style="width:20%;display:inline-block;">Twitter</div>
+          <div style="width:15%;display:inline-block;">Email conf</div>
+          <div style="width:30%;display:inline-block;">Date</div>
+        </div>
+        {% for profile in sigs_by_followers|slice:":5" %}
+          {% include 'clia_petition/partials/sig_info.html' %}
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="col-sm-6">
+      <h3>Recent signatures</h3>
+
+      <div>
+        <div>
+          <div style="width:30%;display:inline-block;">Name</div>
+          <div style="width:20%;display:inline-block;">Twitter</div>
+          <div style="width:15%;display:inline-block;">Email conf</div>
+          <div style="width:30%;display:inline-block;">Date</div>
+        </div>
+        {% for profile in sigs_by_date|slice:":5" %}
+          {% include 'clia_petition/partials/sig_info.html' %}
+        {% endfor %}
+      </div>
+    </div>
+
+  </div>
+
+  {% if not user.is_authenticated %}
+
+  <hr>
+
+  <h2>Add your voice.</h2>
   {{ form.non_field_errors }}
   <form action="{% url 'home' %}" method="post">
 
@@ -51,7 +104,7 @@
     <p>
       {{ form.email.errors }}
       <label for="{{ form.email.id_for_label }}">Email:</label>
-      {{ form.email }}
+      {{ form.email }}<br>
       {{ form.email.help_text }}
     </p>
 
@@ -89,7 +142,6 @@
     </p>
 
   </form>
-  <hr>
 
   <p>
     Did you already sign – but want to update your information?
@@ -97,27 +149,5 @@
   </p>
 
   {% endif %}
-
-<hr>
-
-<h3>Sigs by date</h3>
-
-{% for profile in sigs_by_date %}
-  {{ profile.name }}<br>
-  {{ profile.emailaddress.verified }}<br>
-  @{{ profile.twitter }}<br>
-  {{ profile.followers }}<br>
-  {{ profile.user.join_date }}
-{% endfor %}
-
-<h3>Sigs by followers</h3>
-
-{% for profile in sigs_by_followers %}
-  {{ profile.name }}<br>
-  {{ profile.emailaddress.verified }}<br>
-  @{{ profile.twitter }}<br>
-  {{ profile.followers }}<br>
-  {{ profile.user.join_date }}
-{% endfor %}
 
 {% endblock content %}

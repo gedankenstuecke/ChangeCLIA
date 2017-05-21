@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Want to edit your comments?</h1>
+
+<h2>There are two ways to log in.</h2>
+
+<h3>1. Send a "login link" to your email.</h3>
+
+<p>
+  If you've connected with your email address, you can send yourself
+  an email with a link to log back in.
+</p>
+
+<a class="btn btn-default btn-md" href="{% url 'account_reset_password' %}">Get login link</a>
+
+<h3>2. Log in with Twitter.</h3>
+
+{% if twitter_auth_url %}
+<p>
+  <a class="btn btn-default btn-md" href="{{ twitter_auth_url }}">
+  Log in via Twitter</a>
+</p>
+
+<p>
+  If you've connected your Twitter account, you can log in with this.
+</p>
+
+{% else %}
+<p><b>Sorry! This doesn't appear to be configured correctly.</b></p>
+{% endif %}
+
+{% endblock %}
