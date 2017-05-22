@@ -39,7 +39,6 @@
       </div>
       {% endif %}
 
-    </div>
     <div class="col-sm-6">
       <h3>Your details.</h3>
 
@@ -95,7 +94,11 @@
   {% if not user.is_authenticated %}
 
   <hr>
+  <div class="row">
 
+    <div class="col-sm-6">
+
+  <div class="well">
   <h2>Add your voice.</h2>
   {{ form.non_field_errors }}
   <form action="{% url 'home' %}" method="post">
@@ -115,16 +118,16 @@
       {{ form.name.help_text }}
     </p>
 
+    <p>
     {{ form.us_status.errors }}
-    <ul id="id_us_status">
+    <label for="{{id_us_status.id_for_label}}">Status:</label>
       {% for choice in form.us_status %}
-        <li>
-        {{ choice.value }}
+        <div class="radio">
         {{ choice }}
-        </li>
+        </div>
       {% endfor %}
-    </ul>
     {{ form.us_status.help_text }}
+  </p>
 
     <p>
       {{ form.comments.errors }}
@@ -134,11 +137,11 @@
     </p>
 
     <p>
-      <input type="submit" name="action" value="Sign with email" />
+      <input type="submit" name="action" class="btn btn-default" value="Sign with email" />
     </p>
 
     <p>
-      <input type="submit" name="action" value="Sign with Twitter account" />
+      <input type="submit" name="action" class="btn btn-primary" value="Sign with Twitter account" />
     </p>
 
   </form>
@@ -147,7 +150,9 @@
     Did you already sign – but want to update your information?
     <a href="{% url 'account_reset_password' %}">Request a login link.</a>
   </p>
-
+  </div>
+</div>
+</div>
   {% endif %}
 
 {% endblock content %}

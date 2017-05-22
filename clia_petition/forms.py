@@ -5,8 +5,16 @@ from .models import Profile
 
 User = get_user_model()
 
+class BootstrapModelForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super(BootstrapModelForm, self).__init__(*args, **kwargs)
+        for field in iter(self.fields):
+            self.fields[field].widget.attrs.update({
+                'class': 'form-control'
+            })
 
-class SignatureForm(forms.ModelForm):
+
+class SignatureForm(BootstrapModelForm):
     """
     Collect signature data.
 
