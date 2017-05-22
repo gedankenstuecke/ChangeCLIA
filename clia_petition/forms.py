@@ -5,13 +5,17 @@ from .models import Profile
 
 User = get_user_model()
 
+RADIO_WIDGET_CLASS = forms.RadioSelect().__class__
+
+
 class BootstrapModelForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(BootstrapModelForm, self).__init__(*args, **kwargs)
         for field in iter(self.fields):
-            self.fields[field].widget.attrs.update({
-                'class': 'form-control'
-            })
+            if self.fields[field].widget.__class__ != RADIO_WIDGET_CLASS:
+                self.fields[field].widget.attrs.update({
+                    'class': 'form-control'
+                })
 
 
 class SignatureForm(BootstrapModelForm):
