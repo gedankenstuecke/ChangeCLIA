@@ -60,7 +60,7 @@ class SignatureForm(BootstrapModelForm):
         return email
 
 
-class ProfileForm(forms.ModelForm):
+class ProfileForm(BootstrapModelForm):
     email = forms.EmailField(help_text="Your email becomes an account: you can verify yourself, and update or edit your information. We won't share it.")
     us_status = forms.ChoiceField(choices=Profile.US_STATUS_CHOICES, widget=forms.RadioSelect())
 

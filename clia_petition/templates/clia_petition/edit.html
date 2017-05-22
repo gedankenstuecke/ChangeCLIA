@@ -7,64 +7,68 @@
 {% block content %}
 
 <div class="container">
+  <div class="row">
+    <div class="col-sm-6">
+      <h1>Petition profile</h1>
 
-  <h1>Petition profile</h1>
+      <p>Your profile details are below.</p>
 
-  <p>Your profile details are below.</p>
+      {% include 'clia_petition/partials/profile_info.html' %}
+    </div>
+    <div class="col-sm-6"
+      <hr>
+      <div class=well>
+        <h1>Edit profile details.</h1>
+        {{ form.non_field_errors }}
+        <form action="{% url 'profile_edit' %}" method="post">
 
-  {% include 'clia_petition/partials/profile_info.html' %}
+          {% csrf_token %}
+          <p>
+            {{ form.email.errors }}
+            <label for="{{ form.email.id_for_label }}">Email:</label>
+            {{ form.email }}
+            If you want to log in via email to manage info, your email needs to be correct!
+          </p>
 
-  <hr>
+          <p>
+            {{ form.name.errors }}
+            <label for="{{ form.name.id_for_label }}">Name:</label>
+            {{ form.name }}
+            {{ form.name.help_text }}
+          </p>
 
-  <h1>Edit profile details.</h1>
-  {{ form.non_field_errors }}
-  <form action="{% url 'profile_edit' %}" method="post">
+          {{ form.us_status.errors }}
+          <ul id="id_us_status">
+            {% for choice in form.us_status %}
+              <li>
+              {{ choice.value }}
+              {{ choice }}
+              </li>
+            {% endfor %}
+          </ul>
+          {{ form.us_status.help_text }}
 
-    {% csrf_token %}
-    <p>
-      {{ form.email.errors }}
-      <label for="{{ form.email.id_for_label }}">Email:</label>
-      {{ form.email }}
-      If you want to log in via email to manage info, your email needs to be correct!
-    </p>
+          <p>
+            {{ form.comments.errors }}
+            <label for="{{ form.comments.id_for_label }}">Comments:</label>
+            {{ form.comments }}
+            {{ form.comments.help_text }}
+          </p>
 
-    <p>
-      {{ form.name.errors }}
-      <label for="{{ form.name.id_for_label }}">Name:</label>
-      {{ form.name }}
-      {{ form.name.help_text }}
-    </p>
+          <p>
+            <input type="submit" value="Update details" />
+          </p>
 
-    {{ form.us_status.errors }}
-    <ul id="id_us_status">
-      {% for choice in form.us_status %}
-        <li>
-        {{ choice.value }}
-        {{ choice }}
-        </li>
-      {% endfor %}
-    </ul>
-    {{ form.us_status.help_text }}
+        </form>
 
-    <p>
-      {{ form.comments.errors }}
-      <label for="{{ form.comments.id_for_label }}">Comments:</label>
-      {{ form.comments }}
-      {{ form.comments.help_text }}
-    </p>
+        <h2>Delete profile</h2>
 
-    <p>
-      <input type="submit" value="Update details" />
-    </p>
-
-  </form>
-
-  <h2>Delete profile</h2>
-
-  <p>
-    <a href="{% url 'profile_delete' %}">Click here to delete your profile.</a>
-  </p>
-
+        <p>
+          <a href="{% url 'profile_delete' %}">Click here to delete your profile.</a>
+        </p>
+      </div>
+    </div>
+  </div>
 </div>
 
 {% endblock content %}
